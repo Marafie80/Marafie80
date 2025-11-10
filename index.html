@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undertale-Inspired Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>UNDERTALE-INSPIRED GAME</h1>
+        <div id="game-info">
+            <div id="player-stats">
+                <span>HP: <span id="hp">20</span>/<span id="max-hp">20</span></span>
+                <span style="margin-left: 20px;">LV: <span id="level">1</span></span>
+                <span style="margin-left: 20px;">GOLD: <span id="gold">0</span></span>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
+        <div id="controls">
+            <p><strong>Controls:</strong></p>
+            <p><strong>Overworld:</strong> Arrow Keys to move, SPACE to interact</p>
+            <p><strong>Battle:</strong> Arrow Keys to move soul, Z to select/confirm, X to cancel, C to spare</p>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

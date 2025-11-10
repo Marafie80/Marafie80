@@ -1,0 +1,596 @@
+// Game Configuration
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Game States
+const GameState = {
+    OVERWORLD: 'overworld',
+    BATTLE: 'battle',
+    DIALOG: 'dialog',
+    MENU: 'menu'
+};
+
+// Game Object
+const Game = {
+    state: GameState.OVERWORLD,
+    player: {
+        x: 320,
+        y: 240,
+        width: 20,
+        height: 20,
+        speed: 2,
+        hp: 20,
+        maxHp: 20,
+        level: 1,
+        gold: 0,
+        soul: {
+            x: 320,
+            y: 350,
+            size: 8,
+            speed: 3
+        }
+    },
+    keys: {},
+    enemies: [],
+    bullets: [],
+    dialog: {
+        active: false,
+        text: '',
+        currentChar: 0,
+        speed: 2,
+        counter: 0
+    },
+    battle: {
+        active: false,
+        enemy: null,
+        turn: 'enemy', // 'player' or 'enemy'
+        phase: 'intro', // 'intro', 'menu', 'fight', 'act', 'item', 'mercy', 'enemyAttack'
+        menuIndex: 0,
+        actMenuIndex: 0,
+        boxX: 160,
+        boxY: 270,
+        boxWidth: 320,
+        boxHeight: 140,
+        bulletTime: 0,
+        maxBulletTime: 300, // 5 seconds at 60fps
+        enemySpared: false
+    }
+};
+
+// Enemy Templates
+const EnemyTypes = {
+    FROGGIT: {
+        name: 'Froggit',
+        hp: 30,
+        maxHp: 30,
+        attack: 5,
+        defense: 2,
+        x: 320,
+        y: 100,
+        width: 60,
+        height: 60,
+        color: '#4CAF50',
+        canSpare: false,
+        dialog: [
+            '* Froggit hops towards you!',
+            '* Froggit doesn\'t understand your compliment.',
+            '* Froggit seems pleased!'
+        ],
+        attacks: ['hop', 'flies']
+    },
+    DUMMY: {
+        name: 'Dummy',
+        hp: 15,
+        maxHp: 15,
+        attack: 0,
+        defense: 0,
+        x: 320,
+        y: 100,
+        width: 50,
+        height: 70,
+        color: '#999',
+        canSpare: true,
+        dialog: [
+            '* The Dummy stands still.',
+            '* You talk to the Dummy.',
+            '* The Dummy is satisfied!'
+        ],
+        attacks: ['cotton']
+    }
+};
+
+// Initialize game
+function init() {
+    // Create some enemies in the overworld
+    Game.enemies.push({
+        x: 150,
+        y: 150,
+        width: 30,
+        height: 30,
+        type: 'FROGGIT',
+        triggered: false
+    });
+
+    Game.enemies.push({
+        x: 450,
+        y: 350,
+        width: 30,
+        height: 30,
+        type: 'DUMMY',
+        triggered: false
+    });
+
+    // Start game loop
+    gameLoop();
+}
+
+// Input handling
+document.addEventListener('keydown', (e) => {
+    Game.keys[e.key] = true;
+
+    if (Game.state === GameState.BATTLE) {
+        handleBattleInput(e.key);
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    Game.keys[e.key] = false;
+});
+
+// Battle Input
+function handleBattleInput(key) {
+    const battle = Game.battle;
+
+    if (battle.phase === 'menu') {
+        if (key === 'ArrowRight' || key === 'ArrowLeft') {
+            battle.menuIndex = (battle.menuIndex + 1) % 4;
+        }
+        if (key === 'z' || key === 'Z') {
+            const options = ['fight', 'act', 'item', 'mercy'];
+            battle.phase = options[battle.menuIndex];
+            if (battle.phase === 'fight') {
+                // Simple attack
+                const damage = Math.floor(Math.random() * 5) + 5;
+                battle.enemy.hp -= damage;
+                showDialog(`* You dealt ${damage} damage!`);
+                if (battle.enemy.hp <= 0) {
+                    endBattle(true);
+                } else {
+                    setTimeout(() => startEnemyTurn(), 1500);
+                }
+            } else if (battle.phase === 'mercy') {
+                if (battle.enemy.canSpare) {
+                    battle.enemySpared = true;
+                    showDialog(`* You spared ${battle.enemy.name}!`);
+                    setTimeout(() => endBattle(false), 1500);
+                } else {
+                    showDialog(`* ${battle.enemy.name} is not ready to be spared.`);
+                    setTimeout(() => startEnemyTurn(), 1500);
+                }
+            }
+        }
+    } else if (battle.phase === 'act') {
+        if (key === 'ArrowDown' || key === 'ArrowUp') {
+            battle.actMenuIndex = (battle.actMenuIndex + 1) % 3;
+        }
+        if (key === 'z' || key === 'Z') {
+            battle.enemy.canSpare = true;
+            showDialog(battle.enemy.dialog[battle.actMenuIndex]);
+            setTimeout(() => startEnemyTurn(), 1500);
+        }
+        if (key === 'x' || key === 'X') {
+            battle.phase = 'menu';
+        }
+    } else if (battle.phase === 'item') {
+        showDialog('* You have no items.');
+        setTimeout(() => {
+            battle.phase = 'menu';
+            Game.dialog.active = false;
+        }, 1500);
+    }
+}
+
+// Show Dialog
+function showDialog(text) {
+    Game.dialog.active = true;
+    Game.dialog.text = text;
+    Game.dialog.currentChar = 0;
+    Game.dialog.counter = 0;
+}
+
+// Start Battle
+function startBattle(enemyType) {
+    Game.state = GameState.BATTLE;
+    Game.battle.active = true;
+    Game.battle.enemy = JSON.parse(JSON.stringify(EnemyTypes[enemyType]));
+    Game.battle.phase = 'intro';
+    Game.battle.menuIndex = 0;
+    Game.battle.bulletTime = 0;
+    Game.bullets = [];
+
+    showDialog(`* ${Game.battle.enemy.name} appears!`);
+
+    setTimeout(() => {
+        Game.dialog.active = false;
+        Game.battle.phase = 'menu';
+    }, 1500);
+
+    // Reset soul position
+    Game.player.soul.x = Game.battle.boxX + Game.battle.boxWidth / 2;
+    Game.player.soul.y = Game.battle.boxY + Game.battle.boxHeight / 2;
+}
+
+// Start Enemy Turn
+function startEnemyTurn() {
+    Game.battle.phase = 'enemyAttack';
+    Game.battle.bulletTime = 0;
+    Game.bullets = [];
+    Game.dialog.active = false;
+
+    // Reset soul position
+    Game.player.soul.x = Game.battle.boxX + Game.battle.boxWidth / 2;
+    Game.player.soul.y = Game.battle.boxY + Game.battle.boxHeight / 2;
+}
+
+// End Battle
+function endBattle(victory) {
+    Game.state = GameState.OVERWORLD;
+    Game.battle.active = false;
+    Game.battle.enemy = null;
+    Game.dialog.active = false;
+    Game.bullets = [];
+
+    if (victory) {
+        Game.player.gold += 10;
+        updateUI();
+    }
+}
+
+// Create Bullets
+function createBullets(attackType) {
+    const box = Game.battle;
+
+    if (attackType === 'hop') {
+        // Create horizontal line of bullets
+        if (Game.battle.bulletTime % 60 === 0) {
+            for (let i = 0; i < 5; i++) {
+                Game.bullets.push({
+                    x: box.boxX + 20 + i * 60,
+                    y: box.boxY + 10,
+                    width: 10,
+                    height: 10,
+                    speedX: 0,
+                    speedY: 2,
+                    color: '#fff'
+                });
+            }
+        }
+    } else if (attackType === 'flies') {
+        // Create random bullets
+        if (Game.battle.bulletTime % 30 === 0) {
+            Game.bullets.push({
+                x: box.boxX + Math.random() * box.boxWidth,
+                y: box.boxY,
+                width: 8,
+                height: 8,
+                speedX: (Math.random() - 0.5) * 2,
+                speedY: 2,
+                color: '#0f0'
+            });
+        }
+    } else if (attackType === 'cotton') {
+        // Slow moving bullets
+        if (Game.battle.bulletTime % 45 === 0) {
+            Game.bullets.push({
+                x: box.boxX + Math.random() * box.boxWidth,
+                y: box.boxY,
+                width: 12,
+                height: 12,
+                speedX: 0,
+                speedY: 1,
+                color: '#ccc'
+            });
+        }
+    }
+}
+
+// Update
+function update() {
+    if (Game.state === GameState.OVERWORLD) {
+        updateOverworld();
+    } else if (Game.state === GameState.BATTLE) {
+        updateBattle();
+    }
+
+    // Update dialog
+    if (Game.dialog.active) {
+        Game.dialog.counter++;
+        if (Game.dialog.counter >= Game.dialog.speed) {
+            Game.dialog.counter = 0;
+            if (Game.dialog.currentChar < Game.dialog.text.length) {
+                Game.dialog.currentChar++;
+            }
+        }
+    }
+}
+
+// Update Overworld
+function updateOverworld() {
+    const player = Game.player;
+    const speed = player.speed;
+
+    // Player movement
+    if (Game.keys['ArrowUp']) player.y -= speed;
+    if (Game.keys['ArrowDown']) player.y += speed;
+    if (Game.keys['ArrowLeft']) player.x -= speed;
+    if (Game.keys['ArrowRight']) player.x += speed;
+
+    // Boundary checking
+    player.x = Math.max(10, Math.min(canvas.width - player.width - 10, player.x));
+    player.y = Math.max(10, Math.min(canvas.height - player.height - 10, player.y));
+
+    // Check enemy collisions
+    for (let enemy of Game.enemies) {
+        if (!enemy.triggered && checkCollision(player, enemy)) {
+            enemy.triggered = true;
+            startBattle(enemy.type);
+            break;
+        }
+    }
+}
+
+// Update Battle
+function updateBattle() {
+    if (Game.battle.phase === 'enemyAttack') {
+        Game.battle.bulletTime++;
+
+        // Create bullets based on enemy attack pattern
+        const attackPattern = Game.battle.enemy.attacks[
+            Math.floor(Math.random() * Game.battle.enemy.attacks.length)
+        ];
+        createBullets(attackPattern);
+
+        // Update soul movement
+        const soul = Game.player.soul;
+        const speed = soul.speed;
+
+        if (Game.keys['ArrowUp']) {
+            soul.y -= speed;
+        }
+        if (Game.keys['ArrowDown']) {
+            soul.y += speed;
+        }
+        if (Game.keys['ArrowLeft']) {
+            soul.x -= speed;
+        }
+        if (Game.keys['ArrowRight']) {
+            soul.x += speed;
+        }
+
+        // Keep soul in battle box
+        const box = Game.battle;
+        soul.x = Math.max(box.boxX + soul.size, Math.min(box.boxX + box.boxWidth - soul.size, soul.x));
+        soul.y = Math.max(box.boxY + soul.size, Math.min(box.boxY + box.boxHeight - soul.size, soul.y));
+
+        // Update bullets
+        for (let i = Game.bullets.length - 1; i >= 0; i--) {
+            const bullet = Game.bullets[i];
+            bullet.x += bullet.speedX;
+            bullet.y += bullet.speedY;
+
+            // Remove bullets outside box
+            if (bullet.y > box.boxY + box.boxHeight ||
+                bullet.y < box.boxY ||
+                bullet.x < box.boxX ||
+                bullet.x > box.boxX + box.boxWidth) {
+                Game.bullets.splice(i, 1);
+                continue;
+            }
+
+            // Check collision with soul
+            if (checkCollision(
+                {x: soul.x - soul.size, y: soul.y - soul.size, width: soul.size * 2, height: soul.size * 2},
+                bullet
+            )) {
+                Game.player.hp -= Game.battle.enemy.attack;
+                updateUI();
+                Game.bullets.splice(i, 1);
+
+                if (Game.player.hp <= 0) {
+                    showDialog('* You died...');
+                    setTimeout(() => {
+                        Game.player.hp = Game.player.maxHp;
+                        updateUI();
+                        endBattle(false);
+                    }, 2000);
+                }
+            }
+        }
+
+        // End enemy turn
+        if (Game.battle.bulletTime >= Game.battle.maxBulletTime) {
+            Game.battle.phase = 'menu';
+            Game.bullets = [];
+        }
+    }
+}
+
+// Check Collision
+function checkCollision(obj1, obj2) {
+    return obj1.x < obj2.x + obj2.width &&
+           obj1.x + obj1.width > obj2.x &&
+           obj1.y < obj2.y + obj2.height &&
+           obj1.y + obj1.height > obj2.y;
+}
+
+// Render
+function render() {
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (Game.state === GameState.OVERWORLD) {
+        renderOverworld();
+    } else if (Game.state === GameState.BATTLE) {
+        renderBattle();
+    }
+
+    // Render dialog
+    if (Game.dialog.active) {
+        renderDialog();
+    }
+}
+
+// Render Overworld
+function renderOverworld() {
+    // Draw simple grid floor
+    ctx.strokeStyle = '#222';
+    for (let i = 0; i < canvas.width; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+    }
+
+    // Draw enemies
+    for (let enemy of Game.enemies) {
+        if (!enemy.triggered) {
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('!', enemy.x + enemy.width / 2, enemy.y - 5);
+        }
+    }
+
+    // Draw player (heart)
+    ctx.fillStyle = '#f00';
+    ctx.beginPath();
+    ctx.arc(Game.player.x + 10, Game.player.y + 10, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Instructions
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Walk into enemies to battle!', canvas.width / 2, 30);
+}
+
+// Render Battle
+function renderBattle() {
+    // Draw enemy
+    const enemy = Game.battle.enemy;
+    ctx.fillStyle = enemy.color;
+    ctx.fillRect(enemy.x - enemy.width / 2, enemy.y - enemy.height / 2, enemy.width, enemy.height);
+
+    // Draw enemy name and HP
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(enemy.name, enemy.x, enemy.y - enemy.height);
+
+    // HP Bar
+    const hpBarWidth = 100;
+    const hpBarHeight = 10;
+    const hpBarX = enemy.x - hpBarWidth / 2;
+    const hpBarY = enemy.y + enemy.height;
+
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(hpBarX, hpBarY, hpBarWidth, hpBarHeight);
+    ctx.fillStyle = '#0f0';
+    const hpPercent = enemy.hp / enemy.maxHp;
+    ctx.fillRect(hpBarX, hpBarY, hpBarWidth * hpPercent, hpBarHeight);
+
+    // Draw battle box
+    const box = Game.battle;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(box.boxX, box.boxY, box.boxWidth, box.boxHeight);
+
+    if (box.phase === 'menu') {
+        // Draw menu options
+        const options = ['FIGHT', 'ACT', 'ITEM', 'MERCY'];
+        const optionWidth = 150;
+        const startX = canvas.width / 2 - optionWidth;
+        const y = 430;
+
+        for (let i = 0; i < options.length; i++) {
+            ctx.fillStyle = box.menuIndex === i ? '#ff0' : '#fff';
+            ctx.font = '20px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(options[i], startX + i * (optionWidth / 1.5), y);
+        }
+    } else if (box.phase === 'act') {
+        // Draw ACT menu
+        const actions = ['Check', 'Compliment', 'Talk'];
+        ctx.fillStyle = '#fff';
+        ctx.font = '16px monospace';
+        ctx.textAlign = 'left';
+
+        for (let i = 0; i < actions.length; i++) {
+            const color = box.actMenuIndex === i ? '#ff0' : '#fff';
+            ctx.fillStyle = color;
+            ctx.fillText('* ' + actions[i], box.boxX + 20, box.boxY + 30 + i * 30);
+        }
+    } else if (box.phase === 'enemyAttack') {
+        // Draw soul (player's heart)
+        ctx.fillStyle = '#f00';
+        ctx.beginPath();
+        ctx.arc(Game.player.soul.x, Game.player.soul.y, Game.player.soul.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw bullets
+        for (let bullet of Game.bullets) {
+            ctx.fillStyle = bullet.color;
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        }
+    }
+}
+
+// Render Dialog
+function renderDialog() {
+    const dialogBox = {
+        x: 50,
+        y: 420,
+        width: canvas.width - 100,
+        height: 50
+    };
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(dialogBox.x, dialogBox.y, dialogBox.width, dialogBox.height);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dialogBox.x, dialogBox.y, dialogBox.width, dialogBox.height);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px monospace';
+    ctx.textAlign = 'left';
+    const displayText = Game.dialog.text.substring(0, Game.dialog.currentChar);
+    ctx.fillText(displayText, dialogBox.x + 10, dialogBox.y + 25);
+}
+
+// Update UI
+function updateUI() {
+    document.getElementById('hp').textContent = Game.player.hp;
+    document.getElementById('max-hp').textContent = Game.player.maxHp;
+    document.getElementById('level').textContent = Game.player.level;
+    document.getElementById('gold').textContent = Game.player.gold;
+}
+
+// Game Loop
+function gameLoop() {
+    update();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+// Start game
+init();
+updateUI();
