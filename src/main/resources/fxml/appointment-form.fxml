@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.hospital.gui.controller.AppointmentFormController"
+          hgap="10"
+          vgap="10"
+          padding="20"
+          stylesheets="@../css/style.css">
+
+    <Label text="Schedule Appointment" styleClass="page-title" GridPane.rowIndex="0" GridPane.columnSpan="2" />
+
+    <Label text="Patient:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+    <ComboBox fx:id="patientComboBox" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="300" />
+
+    <Label text="Doctor:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+    <ComboBox fx:id="doctorComboBox" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="300" />
+
+    <Label text="Date:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+    <DatePicker fx:id="datePicker" GridPane.rowIndex="3" GridPane.columnIndex="1" prefWidth="300" />
+
+    <Label text="Start Time:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+    <HBox spacing="5" GridPane.rowIndex="4" GridPane.columnIndex="1">
+        <Spinner fx:id="startHourSpinner" prefWidth="70" />
+        <Label text=":" />
+        <Spinner fx:id="startMinuteSpinner" prefWidth="70" />
+    </HBox>
+
+    <Label text="End Time:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+    <HBox spacing="5" GridPane.rowIndex="5" GridPane.columnIndex="1">
+        <Spinner fx:id="endHourSpinner" prefWidth="70" />
+        <Label text=":" />
+        <Spinner fx:id="endMinuteSpinner" prefWidth="70" />
+    </HBox>
+
+    <Label text="Notes:" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+    <TextArea fx:id="notesArea" GridPane.rowIndex="6" GridPane.columnIndex="1" prefRowCount="3" />
+
+    <Label fx:id="errorLabel" styleClass="error" GridPane.rowIndex="7" GridPane.columnSpan="2" />
+
+    <HBox spacing="10" GridPane.rowIndex="8" GridPane.columnIndex="1" alignment="CENTER_RIGHT">
+        <Button text="Schedule" onAction="#onSchedule" styleClass="success-button" />
+        <Button text="Cancel" onAction="#onCancel" styleClass="secondary-button" />
+    </HBox>
+</GridPane>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.hospital.gui.controller.PatientFormController"
+          hgap="10"
+          vgap="10"
+          padding="20"
+          stylesheets="@../css/style.css">
+
+    <Label text="Patient Information" styleClass="page-title" GridPane.rowIndex="0" GridPane.columnSpan="2" />
+
+    <Label text="First Name:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+    <TextField fx:id="firstNameField" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="300" />
+
+    <Label text="Last Name:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+    <TextField fx:id="lastNameField" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+    <Label text="Date of Birth:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+    <DatePicker fx:id="dobPicker" GridPane.rowIndex="3" GridPane.columnIndex="1" prefWidth="300" />
+
+    <Label text="Gender:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+    <ComboBox fx:id="genderComboBox" GridPane.rowIndex="4" GridPane.columnIndex="1" prefWidth="300" />
+
+    <Label text="Phone:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+    <TextField fx:id="phoneField" GridPane.rowIndex="5" GridPane.columnIndex="1" />
+
+    <Label text="Email:" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+    <TextField fx:id="emailField" GridPane.rowIndex="6" GridPane.columnIndex="1" />
+
+    <Label text="Address:" GridPane.rowIndex="7" GridPane.columnIndex="0" />
+    <TextArea fx:id="addressArea" GridPane.rowIndex="7" GridPane.columnIndex="1" prefRowCount="3" />
+
+    <Label fx:id="errorLabel" styleClass="error" GridPane.rowIndex="8" GridPane.columnSpan="2" />
+
+    <HBox spacing="10" GridPane.rowIndex="9" GridPane.columnIndex="1" alignment="CENTER_RIGHT">
+        <Button text="Save" onAction="#onSave" styleClass="success-button" />
+        <Button text="Cancel" onAction="#onCancel" styleClass="secondary-button" />
+    </HBox>
+</GridPane>

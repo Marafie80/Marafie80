@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hospital.gui.controller.PatientsController"
+      spacing="10"
+      padding="20"
+      stylesheets="@../css/style.css">
+
+    <Label text="Patient Management" styleClass="page-title" />
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" promptText="Search patients..." onKeyReleased="#onSearch" prefWidth="300" />
+        <Button text="Search" onAction="#onSearch" styleClass="primary-button" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="New Patient" onAction="#onNewPatient" styleClass="success-button" />
+    </HBox>
+
+    <TableView fx:id="patientsTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="100" />
+            <TableColumn fx:id="colFirstName" text="First Name" prefWidth="150" />
+            <TableColumn fx:id="colLastName" text="Last Name" prefWidth="150" />
+            <TableColumn fx:id="colDob" text="Date of Birth" prefWidth="120" />
+            <TableColumn fx:id="colGender" text="Gender" prefWidth="80" />
+            <TableColumn fx:id="colContact" text="Contact" prefWidth="200" />
+        </columns>
+    </TableView>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Edit" onAction="#onEdit" styleClass="primary-button" />
+        <Button text="Delete" onAction="#onDelete" styleClass="danger-button" />
+        <Button text="View Medical Record" onAction="#onViewMedicalRecord" styleClass="secondary-button" />
+    </HBox>
+</VBox>

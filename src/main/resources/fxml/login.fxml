@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hospital.gui.controller.LoginController"
+      spacing="12"
+      alignment="CENTER"
+      stylesheets="@../css/style.css"
+      styleClass="login-container">
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="Hospital Management System" styleClass="title" />
+    <Label text="Please login to continue" styleClass="subtitle" />
+
+    <VBox spacing="8">
+        <Label text="Username:" />
+        <TextField fx:id="usernameField" promptText="Enter username" />
+    </VBox>
+
+    <VBox spacing="8">
+        <Label text="Password:" />
+        <PasswordField fx:id="passwordField" promptText="Enter password" />
+    </VBox>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Login" onAction="#onLogin" styleClass="primary-button" />
+        <Button text="Exit" onAction="#onExit" styleClass="secondary-button" />
+    </HBox>
+
+    <Label fx:id="errorLabel" styleClass="error" />
+</VBox>

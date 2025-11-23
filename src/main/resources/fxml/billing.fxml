@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hospital.gui.controller.BillingController"
+      spacing="10"
+      padding="20"
+      stylesheets="@../css/style.css">
+
+    <Label text="Billing Management" styleClass="page-title" />
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Filter by Status:" />
+        <ComboBox fx:id="statusFilterComboBox" prefWidth="150" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="New Invoice" onAction="#onNewInvoice" styleClass="success-button" />
+    </HBox>
+
+    <TableView fx:id="invoicesTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="Invoice ID" prefWidth="120" />
+            <TableColumn fx:id="colPatient" text="Patient" prefWidth="200" />
+            <TableColumn fx:id="colTotal" text="Total" prefWidth="100" />
+            <TableColumn fx:id="colStatus" text="Status" prefWidth="100" />
+        </columns>
+    </TableView>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="View Details" onAction="#onViewDetails" styleClass="primary-button" />
+        <Button text="Mark as Paid" onAction="#onMarkPaid" styleClass="success-button" />
+    </HBox>
+</VBox>

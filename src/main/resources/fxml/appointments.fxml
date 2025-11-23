@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hospital.gui.controller.AppointmentsController"
+      spacing="10"
+      padding="20"
+      stylesheets="@../css/style.css">
+
+    <Label text="Appointment Management" styleClass="page-title" />
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Filter:" />
+        <ComboBox fx:id="filterComboBox" prefWidth="150" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="New Appointment" onAction="#onNewAppointment" styleClass="success-button" />
+    </HBox>
+
+    <TableView fx:id="appointmentsTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="100" />
+            <TableColumn fx:id="colPatient" text="Patient" prefWidth="150" />
+            <TableColumn fx:id="colStaff" text="Staff" prefWidth="150" />
+            <TableColumn fx:id="colStart" text="Start Time" prefWidth="150" />
+            <TableColumn fx:id="colEnd" text="End Time" prefWidth="150" />
+            <TableColumn fx:id="colStatus" text="Status" prefWidth="100" />
+        </columns>
+    </TableView>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Edit" onAction="#onEdit" styleClass="primary-button" />
+        <Button text="Complete" onAction="#onComplete" styleClass="success-button" />
+        <Button text="Cancel" onAction="#onCancel" styleClass="danger-button" />
+    </HBox>
+</VBox>
