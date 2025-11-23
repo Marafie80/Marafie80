@@ -1,0 +1,15 @@
+@startuml BattleSequence
+participant Player
+participant World
+participant CombatManager
+participant Enemy
+participant UIManager
+
+Player -> World : player interacts with enemy
+World -> CombatManager : startBattle(player, enemy)
+CombatManager -> UIManager : open battle HUD
+UIManager -> UIManager : show attack/act/mercy/item options
+CombatManager -> Enemy : request enemy snapshot
+CombatManager -> Player : request player snapshot
+CombatManager -> UIManager : render battle loop
+@enduml

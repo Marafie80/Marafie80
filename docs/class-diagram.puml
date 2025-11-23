@@ -1,0 +1,206 @@
+@startuml UndertaleLikeGame
+' style
+skinparam classAttributeIconSize 0
+skinparam dpi 150
+
+package "engine" {
+  class Game {
+    - boolean running
+    - GameState currentState
+    + init()
+    + gameLoop()
+    + changeState(GameState)
+  }
+
+  interface GameState {
+    + enter()
+    + update(float dt)
+    + render(Renderer)
+    + exit()
+    + handleInput(InputEvent)
+  }
+
+  class Renderer {
+    + drawImage(Sprite, int x, int y)
+    + drawText(String, int x, int y)
+    + clear()
+  }
+
+  class InputManager {
+    + isKeyDown(KeyCode)
+    + getAxis(String)
+    + pollEvents()
+  }
+
+  class AssetManager {
+    + loadSprite(id, path)
+    + loadSound(id, path)
+    + getSprite(id)
+    + getSound(id)
+  }
+}
+
+package "world" {
+  class World {
+    - TileMap tileMap
+    - List<Entity> entities
+    + update(float dt)
+    + render(Renderer)
+    + addEntity(Entity)
+    + removeEntity(Entity)
+  }
+
+  class TileMap {
+    - int width
+    - int height
+    - Tile[][] tiles
+    + getTile(int x,int y)
+    + isWalkable(int x,int y)
+  }
+
+  class Tile {
+    - boolean walkable
+    - int spriteId
+  }
+}
+
+package "entity" {
+  abstract class Entity {
+    - String id
+    - int x
+    - int y
+    - Sprite sprite
+    + update(float dt)
+    + render(Renderer)
+    + onCollide(Entity)
+  }
+
+  class Player extends Entity {
+    - Inventory inventory
+    - int health
+    - int mercy    ' Undertale concept : mercy/act/stats
+    - InputManager input
+    + move(Direction)
+    + interact()
+    + startCombat(Enemy)
+    + takeDamage(int)
+  }
+
+  class NPC extends Entity {
+    - DialogueTree dialogue
+    + talk()
+    + onInteract()
+  }
+
+  class Enemy extends Entity {
+    - CombatAI ai
+    - int hp
+    - int attackPower
+    + performTurn(CombatContext)
+    + onDefeated()
+  }
+
+  class Projectile extends Entity {
+    - int vx
+    - int vy
+    - int damage
+    + update(float dt)
+  }
+}
+
+package "combat" {
+  class CombatManager {
+    - Player player
+    - Enemy enemy
+    - BattleState state
+    + startBattle(Player, Enemy)
+    + update(float dt)
+    + playerAct(Action)
+    + enemyAct()
+    + endBattle()
+  }
+
+  class BattleState {
+    - CombatPhase phase
+    + transitionTo(CombatPhase)
+  }
+
+  class CombatAI {
+    + decideAction(CombatContext) : Action
+  }
+
+  class CombatContext {
+    - Player playerSnapshot
+    - Enemy enemySnapshot
+  }
+
+  enum Action { ATTACK, ACT, MERCY, ITEM }
+  enum CombatPhase { PLAYER_TURN, ENEMY_TURN, RESOLUTION }
+}
+
+package "ui" {
+  class UIManager {
+    - List<UIElement> elements
+    + render(Renderer)
+    + update(float dt)
+    + openMenu(String)
+  }
+
+  abstract class UIElement {
+    - int x
+    - int y
+    + render(Renderer)
+    + update(float dt)
+    + handleInput(InputEvent)
+  }
+
+  class DialogBox extends UIElement {
+    - Queue<String> lines
+    + showText(String)
+    + next()
+  }
+
+  class BattleHUD extends UIElement {
+    - int playerHP
+    - int enemyHP
+    + updateStats(...)
+  }
+
+  class SoulController extends UIElement {
+    - Vector2 position
+    - Vector2 velocity
+    + update(float dt)
+    + render(Renderer)
+    + collideWith(Projectile)
+  }
+}
+
+package "io" {
+  class SaveManager {
+    + save(GameStateData)
+    + load() : GameStateData
+  }
+
+  class GameStateData {
+    - PlayerData player
+    - WorldData world
+  }
+}
+
+' relations
+GameState ..|> Game
+World *-- TileMap
+World o-- Entity
+Entity <|-- Player
+Entity <|-- NPC
+Entity <|-- Enemy
+CombatManager o-- CombatAI
+CombatManager o-- CombatContext
+Player --> Inventory
+UIManager o-- UIElement
+BattleHUD --> CombatManager
+SoulController --> Projectile : collides
+Player --> CombatManager : startBattle()
+NPC --> DialogueTree
+
+@enduml
