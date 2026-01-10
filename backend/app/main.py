@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.api import auth, users, books
+from app.api import auth, users, books, ai
 
 
 @asynccontextmanager
@@ -140,6 +140,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)
 app.include_router(books.router, prefix=settings.API_V1_PREFIX)
+app.include_router(ai.router, prefix=settings.API_V1_PREFIX)
 
 
 # ==============================================================================

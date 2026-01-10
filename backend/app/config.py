@@ -75,7 +75,17 @@ class Settings(BaseSettings):
     # External APIs
     STRIPE_API_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+
+    # AI Configuration
+    AI_PROVIDER: str = "mock"  # Options: openai, mock
     OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4-turbo"  # gpt-4-turbo, gpt-4, gpt-3.5-turbo
+    AI_RECOMMENDATIONS_ENABLED: bool = True
+    AI_READER_LEVEL_ENABLED: bool = True
+    AI_SUPPORT_CHAT_ENABLED: bool = True
+    AI_CACHE_ENABLED: bool = True
+    AI_CACHE_TTL_RECOMMENDATIONS: int = 86400  # 24 hours
+    AI_CACHE_TTL_READER_LEVEL: int = 604800  # 7 days
 
     # Email
     SMTP_HOST: str = "smtp.gmail.com"
